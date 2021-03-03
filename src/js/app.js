@@ -8,12 +8,11 @@ App = {
     logging_output: true,
 
     init: function() {
-        if (App.logging_output){console.log("App has been initialized.");}
+        if (App.logging_output){console.log("APP HAS BEEN INITIALIZED.");}
         return App.initWeb3();
     },
 
     initWeb3: function() {
-        // App.web3Provider = new Web3.providers.HttpProvider("http://127.0.0.1:7545");
         // Is there is an injected web3 instance?
         if (typeof web3 !== 'undefined') {
             App.web3Provider = web3.currentProvider;
@@ -23,7 +22,7 @@ App = {
             App.web3Provider = new web3.providers.HttpProvider('http://127.0.0.1:7545');
             web3 = new Web3(App.web3Provider);
         }
-        if (App.logging_output){console.log('PROVIDER: ', App.web3Provider)}
+        if (App.logging_output){console.log('USING PROVIDER: ', App.web3Provider);}
         return App.initContracts();
     },
 
@@ -34,7 +33,7 @@ App = {
             App.contracts.DappTokenSale.setProvider(App.web3Provider);
             App.contracts.DappTokenSale.deployed().then(function(DappTokenSale)
             {
-                if (App.logging_output){console.log("Dapp Token Sale Address:", DappTokenSale.address)}
+                if (App.logging_output){console.log("DAPP TOKEN SALE ADDRESS:", DappTokenSale.address);}
             });
         }).done(function()
         {
@@ -44,38 +43,35 @@ App = {
                 App.contracts.DappToken.setProvider(App.web3Provider);
                 App.contracts.DappToken.deployed().then(function(DappToken)
                 {
-                    if (App.logging_output){console.log("Dapp Token Address:", DappToken.address)}
+                    if (App.logging_output){console.log("DAPP TOKEN ADDRESS:", DappToken.address);}
                 });
                 App.listenForEvents();
                 return App.render();
             });
-        })
+        });
     },
 
+    // TODO *FIX MetaMask - RPC Error: MetaMask Tx Signature: User denied transaction signature.*
     // Listen for events emitted from the contract
     listenForEvents: function() {
-        /*
-        App.contracts.DappTokenSale.deployed().then(function(instance)
-        {
-            instance.Sell({}, {
-                fromBlock: 0,
-                toBlock: 'latest',
-            }).watch(function(error, event)
-            {
-                if (App.logging_output){console.log("EVENT TRIGGERED", event)};
-                App.render();
-            })
-        })
-        */
 
         // watch the Transfer event
         App.contracts.DappTokenSale.deployed().then(function(instance)
         {
-          instance.Sell()
-          .on('data', event => {
+
+            return instance.Sell()
+            .on('data', event => {
                 if (App.logging_output){console.log("EVENT TRIGGERED", event)};
                 App.render();
             });
+            /*
+            return instance.Sell(function(error, result) {
+                if (!error){
+                    if (App.logging_output){console.log('EVENT TRIGGERED: ', result);}
+                    App.render();
+                }
+            });
+            */
         });
     },
 
@@ -90,16 +86,7 @@ App = {
         loader.show();
         content.hide();
 
-        // GET ACCOUNTS
-        //const accounts = ethereum.request({ method: 'eth_requestAccounts' });
-        //const account = accounts[0];
-
-        web3.eth.getCoinbase(function(err, account) {
-          if(err === null) {
-            $('#accountAddress').html("Your Account: " + App.web3Provider.selectedAddress);
-          }
-        })
-
+        $('#accountAddress').html("Your Account: " + App.web3Provider.selectedAddress);
         if (App.logging_output){console.log('USER ACCOUNT: ', App.web3Provider.selectedAddress);}
 
         // Load contracts
@@ -136,25 +123,18 @@ App = {
         {
             $('.dapp-balance').html(balance.toNumber());
             if (App.logging_output){console.log('USER ACCOUNT BALANCE: ', balance.toNumber());}
-            //$('.dapp-balance').html(25000);
             App.loading = false;
             loader.hide();
             content.show();
         });
     },
 
-    // FIX BUYER ACCOUNT
     buyTokens: function() {
         $('#content').hide();
         $('#loader').show();
 
         var numberOfTokens = $('#numberOfTokens').val();
-        /*
-        App.contracts.DappTokenSale.deployed().then(function(instance)
-        {
-        }).then(function(tokenPrice)
-        {
-        */
+
         App.contracts.DappToken.deployed().then(function(instance)
         {
             // Grab token instance first
@@ -168,22 +148,27 @@ App = {
         }).then(function(balance)
         {
             if (App.logging_output){
-                console.log('BUY USER ACCOUNT: ', App.web3Provider.selectedAddress);
-                console.log('BUY USER ACCOUNT BALANCE: ', balance.toNumber());
-                console.log('BUY NUMBER OF TOKENS: ', numberOfTokens);
-                console.log('BUY TOKEN PRICE: ', App.tokenPrice);
+                console.log('BUYER USER ACCOUNT: ', App.web3Provider.selectedAddress);
+                console.log('BUYER USER ACCOUNT BALANCE: ', balance.toNumber());
+                console.log('BUYER NUMBER OF TOKENS: ', numberOfTokens);
+                console.log('BUYER TOKEN PRICE: ', App.tokenPrice);
             }
 
             return DappTokenSaleInstance.buyTokens(numberOfTokens, {
                 from: App.web3Provider.selectedAddress,
                 value: numberOfTokens * App.tokenPrice,
                 gas: 500000 // Gas limit
+            }).catch(function(error)
+            {
+              if (App.logging_output){console.log('GOT AN ERROR: ', error.message);}
+              $('form').trigger('reset');
+              App.render();
             });
         }).then(function(result)
         {
-            if (App.logging_output){console.log("Tokens bought.")}
+            if (App.logging_output){console.log("TOKENS BOUGHT: ", result);}
             // reset number of tokens in form
-            //$('form').trigger('reset');
+            $('form').trigger('reset');
             // Wait for Sell event
         });
     }

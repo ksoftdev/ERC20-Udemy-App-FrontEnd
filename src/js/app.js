@@ -19,7 +19,8 @@ App = {
             web3 = new Web3(web3.currentProvider);
         } else {
             // If no injected web3 instance is detected, fallback to Truffle Develop.
-            App.web3Provider = new web3.providers.HttpProvider('http://127.0.0.1:7545');
+            //App.web3Provider = new web3.providers.HttpProvider('http://127.0.0.1:7545');
+            App.web3Provider = new web3.providers.HttpProvider('http://192.168.0.217:8545');
             web3 = new Web3(App.web3Provider);
         }
         if (App.logging_output){console.log('USING PROVIDER: ', App.web3Provider);}
@@ -27,7 +28,7 @@ App = {
     },
 
     initContracts: function() {
-        $.getJSON("DappTokenSale.json", function(DappTokenSale)
+        $.getJSON("rinkeby/DappTokenSale.json", function(DappTokenSale)
         {
             App.contracts.DappTokenSale = TruffleContract(DappTokenSale);
             App.contracts.DappTokenSale.setProvider(App.web3Provider);
@@ -37,7 +38,7 @@ App = {
             });
         }).done(function()
         {
-            $.getJSON("DappToken.json", function(DappToken)
+            $.getJSON("rinkeby/DappToken.json", function(DappToken)
             {
                 App.contracts.DappToken = TruffleContract(DappToken);
                 App.contracts.DappToken.setProvider(App.web3Provider);

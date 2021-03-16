@@ -1,2 +1,4 @@
-Front end application to interact with ethereum smart contracts. Develop for the Udemy course.
-Front end application to interact with ethereum smart contracts. Developed for the Udemy course.
+FrontEnd application to interact with ethereum smart contracts.
+Udemy course for creating ERC20 token.
+
+[!DEMO](../main/Demo.png)
